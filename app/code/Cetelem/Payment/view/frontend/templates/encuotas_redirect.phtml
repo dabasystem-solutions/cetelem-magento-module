@@ -1,0 +1,12 @@
+<?php
+/** @var $block \Cetelem\Payment\Block\EncuotasRedirect */
+?>
+
+<body onload="setTimeout(function() { document.encuotas.submit() }, 0)">
+    <div style="text-align:center;">
+        <img src="<?php echo $block->getLoader()["loader"]?>">
+        <form name="encuotas" action = "<?php echo $block->getAction()?>" method="POST">
+            <?php echo $block->getFields();?>
+        </form>
+    </div>
+</body>

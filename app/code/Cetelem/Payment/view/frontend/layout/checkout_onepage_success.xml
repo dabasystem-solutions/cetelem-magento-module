@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<body>
+	<referenceBlock name="page.main.title" remove="true"/>
+    <referenceContainer name="content">
+		<block class="Cetelem\Payment\Block\Success" name="order.details.success" template="Cetelem_Payment::success.phtml" />
+    </referenceContainer>
+    <referenceBlock name="checkout.success" remove="true"/>
+</body>

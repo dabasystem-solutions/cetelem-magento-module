@@ -1,0 +1,12 @@
+<?php
+/** @var $block \Cetelem\Payment\Block\CetelemRedirect */
+?>
+
+<body onload="setTimeout(function() { document.cetelem.submit() }, 0)">
+	<div style="text-align:center">
+		<img src="<?php echo $block->getLoader()["loader"]?>">
+		<form name="cetelem" action = "<?php echo $block->getAction()?>" method="POST">
+			<?php echo $block->getFields();?>
+		</form>
+	</div>
+</body>

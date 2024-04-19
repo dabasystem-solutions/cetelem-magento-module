@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+			<cetelempayment>
+				<title>Cetelem Payment</title>
+				<active>0</active>
+				<testmode>1</testmode>
+                <allowed_ips>213.170.60.39</allowed_ips>
+				<model>Cetelem\Payment\Model\CetelemPaymentMethod</model>
+				<order_status>pending</order_status>
+                <allowspecific>0</allowspecific>
+				<credentials>
+					<merchant_url>cetelem/index/callback</merchant_url>
+				</credentials>
+				<order_configuration>
+					<canceled_status>canceled</canceled_status>
+					<order_status>pending_cetelem</order_status>
+					<order_approved_status>processing</order_approved_status>
+				</order_configuration>
+				<productview_configuration>
+					<min_amount>36</min_amount>
+                    <js_url>/eCommerceCalculadora/resources/js/eCalculadoraCetelemCombo.js</js_url>
+				</productview_configuration>
+				<sort_order>10</sort_order>
+            </cetelempayment>
+            <encuotaspayment>
+                <title>enCuotas Payment</title>
+                <active>0</active>
+                <testmode>1</testmode>
+                <allowed_ips>213.170.60.39</allowed_ips>
+                <model>Cetelem\Payment\Model\EncuotasPaymentMethod</model>
+                <order_status>pending</order_status>
+                <allowspecific>0</allowspecific>
+                <credentials>
+                    <merchant_url>cetelem/index/callback</merchant_url>
+                </credentials>
+                <order_configuration>
+                    <canceled_status>canceled</canceled_status>
+                    <order_status>pending_encuotas</order_status>
+                    <order_approved_status>processing</order_approved_status>
+                    <max_amount>999</max_amount>
+                </order_configuration>
+                <productview_configuration>
+                    <min_amount>36</min_amount>
+                    <js_url>/eCommerceCalculadora/resources/js/encuotas/eCalculadoraCetelemEnCuotas.js</js_url>
+                </productview_configuration>
+                <cron>
+                    <config_max>0 0 * * *</config_max>
+                    <external_url>https://www.cetelem.es/addons/importe_enc.txt</external_url>
+                </cron>
+            </encuotaspayment>
+        </payment>
+    </default>
+</config>

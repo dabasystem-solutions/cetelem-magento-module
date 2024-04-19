@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="cetelem_payment_config_provider" xsi:type="object">Cetelem\Payment\Model\CetelemConfigProvider</item>
+                <item name="encuotas_payment_config_provider" xsi:type="object">Cetelem\Payment\Model\EncuotasConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\ConfigurableProduct\Block\Product\View\Type\Configurable">
+        <plugin name="cetelem_configurable_product_calculator"
+                type="Cetelem\Payment\Block\ConfigurableProduct\Product\View\Type\Configurable"
+                sortOrder="1"/>
+    </type>
+
+    <type name="Cetelem\Payment\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+
+    <type name="Cetelem\Payment\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">CetelemLogger</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Cetelem\Payment\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

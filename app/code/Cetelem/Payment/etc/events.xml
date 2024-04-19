@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+	<event name="payment_method_is_active">
+            <observer name="cetelem_payment_available" instance="Cetelem\Payment\Observer\CetelemMethodAvailable" />
+            <observer name="encuotas_payment_available" instance="Cetelem\Payment\Observer\EncuotasMethodAvailable" />
+    </event>
+     <event name="sales_order_place_before">
+        <observer name="cetelem_payment_email_stopper" instance="Cetelem\Payment\Observer\Email" />
+    </event>
+</config>

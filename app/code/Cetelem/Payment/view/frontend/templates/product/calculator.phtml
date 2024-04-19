@@ -1,0 +1,52 @@
+<?php
+use Cetelem\Payment\Api\PaymentInterface;
+use Cetelem\Payment\Block\Product\Calculator;
+/* @var $block Calculator */
+?>
+
+<?php $currentProduct = $block->getCurrentProduct();
+$helper = $this->helper('Cetelem\Payment\Helper\Data');
+$configCetelem = $block->getConfigCetelem();
+$configEnCuotas = $block->getConfigEnCuotas();
+?>
+<div id="eCalculadoraCetelemDiv"></div>
+<div id="eCalculadoraCetelemEnCuotas"></div>
+<?php $_product = $block->getProduct() ?>
+<?php $amount = $block->getPriceProduct();?>
+<div id="opt-price" style="visibility:hidden;"><?= $amount?></div>
+
+<script type="text/javascript">
+    require(['jquery'], function ($) {
+        cantidad = $('#opt-price').text();
+        $(document).ready(function(){
+            checkData($('#opt-price').text());
+        });
+        $('#opt-price').bind('DOMSubtreeModified', function () {
+            checkData($('#opt-price').text());
+        });
+
+        function checkData(){
+            cantidad = $('#opt-price').text();
+            jsUrl = "";
+            codCentro = "";
+            color = "";
+            server= "";
+            <?php if ($configCetelem["enabled"] && $configCetelem["calc_enabled"]):?>
+            if(cantidad > <?= $configCetelem["min_amount"]?>){
+                server = '<?= $block->escapeUrl($helper->getEnvironmentUrl(PaymentInterface::CETELEM))?>';
+                jsUrl = "<?= $block->escapeHtml($configCetelem["serverUrl"]);?>";
+                codCentro = "<?= $block->escapeHtml($configCetelem["merchant_code"]);?>";
+                $('#eCalculadoraCetelemDiv').html('<scr'+'ipt type="text/javascript" src="'+server+jsUrl+'" async></scr'+'ipt>');
+            }
+            <?php endif;?>
+            <?php if ($configEnCuotas["enabled"] && $configEnCuotas["calc_enabled"]):?>
+            if(cantidad !== '' &&  cantidad <= <?= $configEnCuotas["max_amount"] ?>){
+                server = '<?= $block->escapeUrl($helper->getEnvironmentUrl(PaymentInterface::ENCUOTAS))?>';
+                jsUrl = "<?= $block->escapeHtml($configEnCuotas["serverUrl"]);?>";
+                codCentro = "<?= $block->escapeHtml($configEnCuotas["merchant_code"]);?>";
+                $('#eCalculadoraCetelemEncuotas').html('<scr'+'ipt type="text/javascript" src="'+server+jsUrl+'" async></scr'+'ipt>');
+            }
+            <?php endif;?>
+        }
+    });
+</script>
