@@ -122,7 +122,7 @@ class PaymentBase
             "Apellidos" => preg_replace($regexExclude, ' ', substr($address->getLastname(), 0, 40)),
             "Direccion" => preg_replace($regexExclude, ' ', substr($address->getStreet()[0], 0, 50)),
             "Localidad" => preg_replace($regexExclude, ' ', substr($address->getCity(), 0, 20)),
-            "CodPostal" => substr($address->getPostcode(), 0, 5),
+            "CodPostalEnvio" => substr($address->getPostcode(), 0, 5),
             "Telefono1" => $phone,
             "Albaran" => $orderId
         ];
