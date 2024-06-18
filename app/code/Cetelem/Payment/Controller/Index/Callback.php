@@ -5,6 +5,8 @@ namespace Cetelem\Payment\Controller\Index;
 use Cetelem\Payment\Api\PaymentInterface;
 use Cetelem\Payment\Helper\Data;
 use Cetelem\Payment\Logger\Logger;
+use Cetelem\Payment\Utils\Callback\ErrorResponse;
+use Cetelem\Payment\Utils\Callback\SuccessResponse;
 use Exception;
 use Magento\Catalog\Model\ProductFactory;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
@@ -213,6 +215,7 @@ class Callback extends Action implements CsrfAwareActionInterface
                             if ($responseCode == '00') {
                                 $status  = $this->helper->getConfig($dataParams . self::CONFIG_PREAPROVED_ORDER);
                                 $comment = __('Pre-approved financing operation');
+                                $callbackResponse = new SuccessResponse((string) $order->getId());
                             } elseif ($responseCode == '50') {
                                 $status  = $this->helper->getConfig($dataParams . self::CONFIG_APROVED_ORDER);
                                 $comment = 'Approved financing operation';
@@ -262,7 +265,11 @@ class Callback extends Action implements CsrfAwareActionInterface
         $this->logger->info($comment);
         $this->logger->info("status:".$order->getStatus());
         $this->logger->info("status:".$responseCode);
-        //echo $comment;
+
+        if (!isset($callbackResponse) || empty($callbackResponse)) {
+            $callbackResponse = new ErrorResponse($comment);
+        }
+        $callbackResponse->send();
     }
 
     /**
