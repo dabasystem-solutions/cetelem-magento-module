@@ -21,7 +21,7 @@ define(
               setPaymentMethodAction,
               customerData,
               url,
-              orders) {
+              quote) {
         'use strict';
         return Component.extend({
 
