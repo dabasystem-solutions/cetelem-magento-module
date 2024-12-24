@@ -1,0 +1,20 @@
+{
+    "name": "cetelem/payment",
+    "description": "Cetelem financing payment method",
+    "require": {
+        "php": ">=7.4"
+    },
+    "type": "magento2-module",
+    "version": "3.0.0",
+    "license": [
+        "proprietary"
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Cetelem\\Payment\\": ""
+        }
+    }
+}
