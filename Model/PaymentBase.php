@@ -89,7 +89,7 @@ class PaymentBase
         $address = $quote->getBillingAddress();
 
         $regexExclude='/[^a-zA-ZàáâäãåacceèéêëeiìíîïlnòóôöõøùúûüuuÿýzzñçcšžÀÁÂÄÃÅACCEEÈÉÊËÌÍÎÏILNÒÓÔÖÕØÙÚÛÜUUŸÝZZÑßÇŒÆCŠŽ \\s]+/';
-        $phone = substr($address->getTelephone(), 0, 9);
+        $phone = substr((string)$address->getTelephone(), 0, 9);
         if (!preg_match('/(9|8)[0-9]{8}/', $phone)) {
             $phone='';
         }
@@ -118,11 +118,11 @@ class PaymentBase
                 . '/Albaran/'.$orderId .'/token/'. $token ,
             "windowstate" => "",
             "Email"=> $address->getEmail(),
-            "Nombre" => preg_replace($regexExclude, ' ', substr($address->getFirstname(), 0, 40)),
-            "Apellidos" => preg_replace($regexExclude, ' ', substr($address->getLastname(), 0, 40)),
-            "Direccion" => preg_replace($regexExclude, ' ', substr($address->getStreet()[0], 0, 50)),
-            "Localidad" => preg_replace($regexExclude, ' ', substr($address->getCity(), 0, 20)),
-            "CodPostalEnvio" => substr($address->getPostcode(), 0, 5),
+            "Nombre" => preg_replace($regexExclude, ' ', substr((string)$address->getFirstname(), 0, 40)),
+            "Apellidos" => preg_replace($regexExclude, ' ', substr((string)$address->getLastname(), 0, 40)),
+            "Direccion" => preg_replace($regexExclude, ' ', substr((string)$address->getStreet()[0], 0, 50)),
+            "Localidad" => preg_replace($regexExclude, ' ', substr((string)$address->getCity(), 0, 20)),
+            "CodPostalEnvio" => substr((string)$address->getPostcode(), 0, 5),
             "Telefono1" => $phone,
             "Albaran" => $orderId
         ];
