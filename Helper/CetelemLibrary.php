@@ -42,7 +42,7 @@ class CetelemLibrary extends \Magento\Framework\App\Helper\AbstractHelper {
     public static function checkFuc($codigo) {
         $retVal = preg_match("/^\d{2,9}$/", $codigo);
         if($retVal) {
-            $codigo = str_pad($codigo,9,"0",STR_PAD_LEFT);
+            $codigo = str_pad((string)$codigo,9,"0",STR_PAD_LEFT);
             $fuc = intval($codigo);
             $check = substr($codigo, -1);
             $fucTemp = substr($codigo, 0, -1);
