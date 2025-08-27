@@ -5,6 +5,7 @@ namespace Cetelem\Payment\Controller\Index;
 use Cetelem\Payment\Api\PaymentInterface;
 use Cetelem\Payment\Helper\Data;
 use Cetelem\Payment\Logger\Logger;
+use Cetelem\Payment\Utils\Callback\CallbackResponse;
 use Cetelem\Payment\Utils\Callback\ErrorResponse;
 use Cetelem\Payment\Utils\Callback\SuccessResponse;
 use Exception;
@@ -36,6 +37,11 @@ class Callback extends Action implements CsrfAwareActionInterface
     const CONFIG_APROVED_ORDER    = PaymentInterface::APROVED_ORDER;
     const CONFIG_CANCELED_ORDER   = PaymentInterface::CANCELED_ORDER;
     const CALLBACK_IPS_ALLOWED    = PaymentInterface::IPS_ALLOWED;
+
+    private const RESULT_CODE_PRE_APPROVED = '00';
+    private const RESULT_CODE_APPROVED = '50';
+    private const RESULT_CODE_DENIED_1 = '99';
+    private const RESULT_CODE_DENIED_2 = '51';
 
     /**
      * @var OrderInterface
@@ -106,6 +112,11 @@ class Callback extends Action implements CsrfAwareActionInterface
      * @var CheckoutData
      */
     protected $checkoutData;
+
+    /**
+     * @var string
+     */
+    private $_configPath;
 
     /**
      * @param Context $context
@@ -184,92 +195,162 @@ class Callback extends Action implements CsrfAwareActionInterface
         $orderCollection = $this->orderCollectionFactory->create();
         $orderCollection->addFieldToFilter("quote_id", $quote->getId());
 
-        /** @var Order */
+        /** @var \Magento\Sales\Model\Order */
         $order = $orderCollection->getFirstItem();
-
-        if (!$order->isEmpty()) {
-            $this->logger->info("Order " . $order->getId() . " already has quote_id " . $quote->getId());
-            throw new \Exception("Order already exists");
-        }
 
         $dataParams       = $quote->getPayment()->getmethod() == 'cetelempayment' ?
             PaymentInterface::CETELEM :
             PaymentInterface::ENCUOTAS;
-        $remoteAddr       = $this->remoteAddress->getRemoteAddress();
-        $configIps        = $this->helper->getConfig($dataParams . self::CALLBACK_IPS_ALLOWED);
-        $ips              = explode(",", $configIps);
 
-        
+        $this->setConfigPath($dataParams);
 
+        $remoteAddr = $this->remoteAddress->getRemoteAddress();
+        if (!$this->validateIpAddress($remoteAddr)) {
+            $comment = __('Unauthorized access IP:' . $remoteAddr);
+            $this->logger->info($comment);
+            $response = new ErrorResponse($comment);
+            $response->send();
+            return;
+        }
 
+        if ($quote->isEmpty()) {
+            $comment = __('Quote with reservedOrderId ' . $reservedOrderId . ' does not exist');
+            $this->logger->info($comment);
+            $response = new ErrorResponse($comment);
+            $response->send();
+            return;
+        }
 
-        if (in_array($this->remoteAddress->getRemoteAddress(), $ips) || true) { // todo eliminar el true
-            if (!$quote->isEmpty()) {
-                if ($params["token"] == $quote->getData('cetelem_token')) {
-                    (string)$responseCode = $params['codResultado'];
-                    if (!empty($reservedOrderId) && in_array($responseCode, ['00', '50', '99', '51'])) {
-                        $payment = $quote->getPayment();
-                        if (
-                            in_array($payment->getmethod(), ['cetelempayment', 'encuotaspayment'])
-                        ) {
-                            if ($responseCode == '00') {
-                                $status  = $this->helper->getConfig($dataParams . self::CONFIG_PREAPROVED_ORDER);
-                                $comment = __('Pre-approved financing operation');
-                                $callbackResponse = new SuccessResponse((string) $order->getId());
-                            } elseif ($responseCode == '50') {
-                                $status  = $this->helper->getConfig($dataParams . self::CONFIG_APROVED_ORDER);
-                                $comment = 'Approved financing operation';
-                                
+        if ($params["token"] != $quote->getData('cetelem_token')) {
+            $comment = __('Invalid Token');
+            $this->logger->info($comment);
+            $response = new ErrorResponse($comment);
+            $response->send();
+            return;
+        }
 
-                            } elseif ($responseCode == '99' || $responseCode == '51') {
-                                $status  = $this->helper->getConfig($dataParams . self::CONFIG_CANCELED_ORDER);
-                                $comment = 'Financing operation denied';
-                            }
+        $responseCode = (string)$params['codResultado'];
+        if (!$this->validateResponseCode($responseCode)) {
+            $comment = __('Invalid response code');
+            $this->logger->info($comment);
+            $response = new ErrorResponse($comment);
+            $response->send();
+            return;
+        }
 
-                            if ($this->getCheckoutMethod($quote) == \Magento\Checkout\Model\Type\Onepage::METHOD_GUEST) {
-                                $quote = $this->prepareGuestQuote($quote);
-                            }
-                            $order = $this->createOrder($quote);
-                            $order->setState($status);
-                            $order->setStatus($status);
+        $payment = $quote->getPayment();
+        if (!$this->validatePaymentMethod($payment->getmethod())) {
+            $comment = __("Order has been processed. Cannot change status");
+            $this->logger->info($comment);
+            $response = new ErrorResponse($comment);
+            $response->send();
+            return;
+        }
 
-                            if (isset($params['duracion']) && $params['duracion'] != null) {
-                                $order->setMonths($params['duracion']);
-                            }
+        $callbackResponse = $this->processOrder($order, $quote, $responseCode);
 
-                            $order->addStatusToHistory($order->getStatus(), $comment);
-                            $this->orderRepository->save($order);
+        $this->logger->info("order status:".$order->getStatus());
+        $this->logger->info("response code:".$responseCode);
 
-                            if ($order->getStatus() == 'processing' && $responseCode == '50') {
-                                $this->autoInvoice($order->getId());
-                                $order->addCommentToStatusHistory(__($comment), false)
-                                        ->setIsCustomerNotified(true)
-                                        ->save();
+        $callbackResponse->send();
+    }
 
-                                $this->sendEmail($order);
-                            }
-                        } else {
-                            $comment = __("Order has been processed. Cannot change status");
-                        }
-                    }
-                } else {
-                    $comment = __('Invalid Token');
-                }
+    /**
+     * Sets the config path 
+     *
+     * @param string $path
+     * @return void
+     */
+    private function setConfigPath(string $path)
+    {
+        $this->_configPath = $path;
+    }
+
+    private function getConfigPath()
+    {
+        return $this->_configPath;
+    }
+
+    private function validateIpAddress($ipAddress) : bool
+    {
+        $configIps = $this->helper->getConfig($this->getConfigPath() . self::CALLBACK_IPS_ALLOWED);
+        $configIps = preg_replace("/\s/", "", $configIps);
+        $ips = explode(",", $configIps);
+        return in_array($ipAddress, $ips);
+    }
+
+    private function validateResponseCode(string $responseCode)
+    {
+        $validCodes = [self::RESULT_CODE_PRE_APPROVED, self::RESULT_CODE_APPROVED, self::RESULT_CODE_DENIED_1, self::RESULT_CODE_DENIED_2];
+        return in_array($responseCode, $validCodes);
+    }
+
+    private function validatePaymentMethod(string $paymentMethod)
+    {
+        $validMethods = ['cetelempayment', 'encuotaspayment'];
+        return in_array($paymentMethod, $validMethods);
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @param Quote $quote
+     * @param string $responseCode
+     * @return CallbackResponse
+     */
+    private function processOrder(\Magento\Sales\Model\Order $order, Quote $quote, string $responseCode)
+    {
+        if ($responseCode == self::RESULT_CODE_PRE_APPROVED) {
+            $status  = $this->helper->getConfig($this->getConfigPath() . self::CONFIG_PREAPROVED_ORDER);
+            $comment = __('Pre-approved financing operation');
+        } elseif ($responseCode == self::RESULT_CODE_APPROVED) {
+            $status  = $this->helper->getConfig($this->getConfigPath() . self::CONFIG_APROVED_ORDER);
+            $comment = 'Approved financing operation';
+        } elseif ($responseCode == self::RESULT_CODE_DENIED_1 || $responseCode == self::RESULT_CODE_DENIED_2) {
+            $status  = $this->helper->getConfig($this->getConfigPath() . self::CONFIG_CANCELED_ORDER);
+            $comment = 'Financing operation denied';
+        }
+
+        if ($this->getCheckoutMethod($quote) == \Magento\Checkout\Model\Type\Onepage::METHOD_GUEST) {
+            $quote = $this->prepareGuestQuote($quote);
+        }
+
+        if ($order->isEmpty()) {
+            $order = $this->createOrder($quote);
+        }
+
+        $order->setState($status);
+        $order->setStatus($status);
+
+        if (isset($params['duracion']) && $params['duracion'] != null) {
+            $order->setMonths($params['duracion']);
+        }
+
+        $order->addStatusToHistory($order->getStatus(), $comment);
+        $this->orderRepository->save($order);
+
+        if ($order->getStatus() == 'processing' && $responseCode == self::RESULT_CODE_APPROVED) {
+            $this->autoInvoice($order->getId());
+            $order->addCommentToStatusHistory(__($comment), false)
+                ->setIsCustomerNotified(true);
+
+            if (method_exists($order, "save")) {
+                $order->save();
             }
             else {
-                $comment = __('Quote with reservedOrderId ' . $reservedOrderId . ' does not exist');
+                $this->orderRepository->save($order);
             }
-        } else {
-            $comment = __('Unauthorized access IP:' . $remoteAddr);
-        }
-        $this->logger->info($comment);
-        $this->logger->info("status:".$order->getStatus());
-        $this->logger->info("status:".$responseCode);
 
-        if (!isset($callbackResponse) || empty($callbackResponse)) {
+            $this->sendEmail($order);
+        }
+
+        if ($responseCode == self::RESULT_CODE_PRE_APPROVED || $responseCode == self::RESULT_CODE_APPROVED) {
+            $callbackResponse = new SuccessResponse((string) $order->getId());
+        }
+        else {
             $callbackResponse = new ErrorResponse($comment);
         }
-        $callbackResponse->send();
+
+        return $callbackResponse;
     }
 
     /**
@@ -304,9 +385,8 @@ class Callback extends Action implements CsrfAwareActionInterface
      * @throws LocalizedException
      * @throws Exception
      */
-    private function autoInvoice($orderId)
+    private function autoInvoice(\Magento\Sales\Model\Order $order)
     {
-        $order = $this->orderRepository->get($orderId);
         if ($order->canInvoice()) {
             $invoice = $this->invoiceService->prepareInvoice($order);
             $invoice->register();
@@ -317,8 +397,7 @@ class Callback extends Action implements CsrfAwareActionInterface
             $transaction->save();
             $this->invoiceSender->send($invoice);
             $order->addStatusHistoryComment(__('Notified customer about invoice #%1.', $invoice->getId()))
-                ->setIsCustomerNotified(true)
-                ->save();
+                ->setIsCustomerNotified(true);
         }
     }
 
@@ -345,14 +424,21 @@ class Callback extends Action implements CsrfAwareActionInterface
                 $order->addStatusHistoryComment(__("Cetelem no ha sido posible envíar el correo de confirmación."), false);
             }
             else {
-                $order->addStatusHistoryComment(__("Cetelem ha enviado correo del pedido correctamente"), false)->save();
+                $order->addStatusHistoryComment(__("Cetelem ha enviado correo del pedido correctamente"), false);
+            }
+
+            if (method_exists($order, "save")) {
+                $order->save();
+            }
+            else {
+                $this->orderRepository->save($order);
             }
         }
     }
 
     /**
      * @param Quote $quote
-     * @return Order
+     * @return \Magento\Sales\Model\Order
      */
     private function createOrder(Quote $quote)
     {
