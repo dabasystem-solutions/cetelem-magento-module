@@ -355,33 +355,6 @@ class Callback extends Action implements CsrfAwareActionInterface
 
     /**
      * @param $orderId
-     * @throws Exception
-     * @deprecated 2.1.0
-     */
-    private function returnStock($orderId)
-    {
-        $order = $this->orderRepository->get($orderId);
-        foreach ($order->getAllItems() as $item) {
-            if ($this->stockRegistry->getStockItem($item->getProductId())->getData('manage_stock')) {
-                $productId = $item->getProductId();
-                $product   = $this->productFactory->create()->load($productId);
-                $returnQty = $item->getQtyOrdered();
-                $origQty   = $product->getQuantityAndStockStatus()['qty'];
-                $product->setStockData(
-                    [
-                        'use_config_manage_stock' => 0,
-                        'manage_stock' => 1,
-                        'is_in_stock' => 1,
-                        'qty' => $returnQty + $origQty
-                    ]
-                );
-                $product->save();
-            }
-        }
-    }
-
-    /**
-     * @param $orderId
      * @throws LocalizedException
      * @throws Exception
      */
@@ -455,14 +428,6 @@ class Callback extends Action implements CsrfAwareActionInterface
             }
         }
         return $quote->getCheckoutMethod();
-    }
-
-    private function ignoreAddressValidation(Quote $quote)
-    {
-        // $quote->getBillingAddress()->setShouldIgnoreValidation(true);
-        // if (!$quote->getIsVirtual()) {
-        //     $quote->getShippingAddress()->setShouldIgnoreValidation(true);
-        // }
     }
 
     protected function prepareGuestQuote(Quote $quote)
