@@ -40,10 +40,10 @@ define(
             initialize: function () {
                 let self = this;
                 this.totals.subscribe(function () {
-                    self.setCalculatorPrice();
+                    self.initCalculator();
                 });
                 this.cart.subscribe(function () {
-                    self.setCalculatorPrice();
+                    self.initCalculator();
                 });
                 return this._super();
             },
@@ -92,6 +92,9 @@ define(
             getCetelemImage: function(){
                 return window.checkoutConfig.cetelem.image;
             },
+            getCalculatorContainerId: function () {
+                return "eCalculadoraCetelemDiv";  
+            },
 
             getGrandTotal: function () {
                 return this.totals().grand_total;
@@ -109,13 +112,17 @@ define(
 
             initCalculator: function () {
                 if (this.calculatorConfig.enabled && this.calculatorConfig.min_amount <= this.getGrandTotal()) {
-                    this.setCalculatorPrice();
+                    if (!this.setCalculatorPrice()) {
+                        return false;
+                    }
                     window.cantidad = $('#opt-price').text();
                     window.jsUrl = this.calculatorConfig.serverUrl;
                     window.codCentro = this.calculatorConfig.merchant_code;
                     window.color = "";
                     window.server = this.calculatorConfig.server;
-                    return '<scr' + 'ipt type="text/javascript" src="' + this.calculatorConfig.server + this.calculatorConfig.serverUrl + '" async></scr' + 'ipt>';
+                    $("#" + this.getCalculatorContainerId()).html(
+                        '<scr' + 'ipt type="text/javascript" src="' + this.calculatorConfig.server + this.calculatorConfig.serverUrl + '" async></scr' + 'ipt>'
+                    );
                 }
                 return false;
             }

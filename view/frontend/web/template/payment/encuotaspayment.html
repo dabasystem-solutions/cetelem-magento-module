@@ -23,7 +23,7 @@
             <!--/ko-->
         </div>
         <div id="opt-price" style="visibility:hidden;" data-bind="text: getGrandTotal()"></div>
-        <div id="eCalculadoraCetelemEnCuotas" data-bind="html: initCalculator()"></div>
+        <div data-bind="attr: {'id': getCalculatorContainerId()}, afterRender: initCalculator()"></div>
         <div class="actions-toolbar">
             <div class="left"><img data-bind="attr: {'src': getEncuotasImage()}" width="120"></div>
             <div class="primary">
