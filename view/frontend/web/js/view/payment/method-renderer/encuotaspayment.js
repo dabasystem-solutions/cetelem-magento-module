@@ -37,10 +37,10 @@ define(
             initialize: function () {
                 let self = this;
                 this.totals.subscribe(function () {
-                    self.setCalculatorPrice();
+                    self.initCalculator();
                 });
                 this.cart.subscribe(function () {
-                    self.setCalculatorPrice();
+                    self.initCalculator();
                 });
                 return this._super();
             },
@@ -89,6 +89,9 @@ define(
             getEncuotasImage: function(){
                 return window.checkoutConfig.encuotas.image;
             },
+            getCalculatorContainerId: function () {
+                return "eCalculadoraCetelemEnCuotas";  
+            },
 
             getGrandTotal: function () {
                 return this.totals().grand_total;
@@ -105,17 +108,19 @@ define(
             },
 
             initCalculator: function () {
-                console.log(this.calculatorConfig);
-                console.log(this.calculatorConfig.max_amount  + " <= " + this.getGrandTotal(), this.calculatorConfig.max_amount <= this.getGrandTotal());
-
                 if (this.calculatorConfig.enabled && this.calculatorConfig.max_amount >= this.getGrandTotal()) {
-                    this.setCalculatorPrice();
+                    if (!this.setCalculatorPrice()) {
+                        return false;
+                    }
                     window.cantidad = $('#opt-price').text();
                     window.jsUrl = this.calculatorConfig.serverUrl;
                     window.codCentro = this.calculatorConfig.merchant_code;
                     window.server = this.calculatorConfig.server;
-                    return '<scr' + 'ipt type="text/javascript" src="' + this.calculatorConfig.server + this.calculatorConfig.serverUrl + '" async></scr' + 'ipt>';
+                    $("#" + this.getCalculatorContainerId()).html(
+                        '<scr' + 'ipt type="text/javascript" src="' + this.calculatorConfig.server + this.calculatorConfig.serverUrl + '" async></scr' + 'ipt>'
+                    );
                 }
+                return false;
             }
         });
     }
