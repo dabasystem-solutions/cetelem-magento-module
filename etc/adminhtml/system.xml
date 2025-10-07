@@ -5,43 +5,63 @@
             <group id="cetelempayment" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label><![CDATA[<div class="cetelem-payment-logo"></div><div class="cetelem-payment-byline">Permita que sus clientes financien su compra en cuotas mensuales.</div>]]></label>
                 <fieldset_css>complex cetelem-payment-section</fieldset_css>
-                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
-                <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enabled</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="testmode" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Test mode</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="sort_order" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Sort Order</label>
-                </field>
-                <field id="allowed_ips" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Callback IPs permissions</label>
-                    <comment>Insert IPs comma separated. If empty all IPs are allowed. </comment>
-                </field>
+                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>                
+                    <group id="cetelem_config_1" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Connection data</label>
+                        <field id="merchant_code" translate="label" type="text" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Merchant Code</label>
+                        </field>
+                        <field id="merchant_url" translate="label" type="text" sortOrder="13" showInDefault="0" showInWebsite="0" showInStore="0">
+                        <label>Merchant URL Callback</label>
+                    </field>
+                    </group>                                    
+                    <group id="cetelem_config_2" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Cetelem configuration</label>
+                        <field id="testmode" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Test mode</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        </field>                
+                        <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enabled</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        </field>
+                        <field id="allowed_ips" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Callback IPs permissions</label>
+                            <comment>Insert IPs comma separated. If empty all IPs are allowed. </comment>
+                        </field>
+                        <field id="min_amount" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                            <label>Minimal amount</label>
+                            <comment>Minimal price to show calculator. Ex:120</comment>
+                            <depends>
+                                <field id="show_calculator">1</field>
+                            </depends>
+                        </field>
+                        <field id="show_calculator" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Show Calculator</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        </field>                    
+                        <field id="js_url" translate="label" type="text" sortOrder="40" showInDefault="0" showInWebsite="0" showInStore="0">
+                            <label>Js file URL</label>
+                            <depends>
+                                <field id="show_calculator">1</field>
+                            </depends>
+                        </field>
+                    </group>
                 <field id="enable_material" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Activar Codigo Material</label>
                     <comment>Se activa el envio de codigo material cuando se supera el limite de pedido.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <group id="credentials" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Credentials</label>
-                    <field id="merchant_code" translate="label" type="text" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Merchant Code</label>
-                    </field>
-                    <field id="merchant_url" translate="label" type="text" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Merchant URL Callback</label>
-                    </field>
-                </group>
-                <group id="payment_configuration" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="sort_order" translate="label" type="text" sortOrder="3" showInDefault="0" showInWebsite="0" showInStore="0">
+                    <label>Sort Order</label>
+                </field>
+                <group id="payment_configuration" translate="label" type="text" sortOrder="7" showInDefault="0" showInWebsite="0" showInStore="0">
                     <label>Payment configuration</label>
-                    <field id="product_code" translate="label" type="select" sortOrder="14" showInDefault="9" showInWebsite="1" showInStore="0">
+                    <field id="product_code" translate="label" type="select" sortOrder="14" showInDefault="0" showInWebsite="0" showInStore="0">
                         <label>Agreement Product Code</label>
                         <source_model>Cetelem\Payment\Model\System\Config\Source\Productcode</source_model>
                     </field>
-                    <field id="payment_mode" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="payment_mode" translate="label" type="select" sortOrder="15" showInDefault="0" showInWebsite="0" showInStore="0">
                         <label>Payment Mode</label>
                         <source_model>Cetelem\Payment\Model\System\Config\Source\Paymentmode</source_model>
                         <depends>
@@ -49,7 +69,7 @@
                         </depends>
                     </field>
                 </group>
-                <group id="order_configuration" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="0">
+                <group id="order_configuration" translate="label" type="text" sortOrder="8" showInDefault="0" showInWebsite="0" showInStore="0">
                     <label>Order Configuration</label>
                     <field id="canceled_status" translate="label" type="select" sortOrder="19" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Order Status Canceled by Cetelem</label>
@@ -67,29 +87,13 @@
                         <comment>WARNING! Change if Only Cetelem Recommended</comment>
                     </field>
                 </group>
-                <group id="productview_configuration" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                <group id="productview_configuration" translate="label" type="text" sortOrder="9" showInDefault="0" showInWebsite="0" showInStore="0">
                     <label>Product View Configuration</label>
-                    <field id="show_calculator" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Show Calculator</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    </field>
-                    <field id="min_amount" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label>Minimal amount</label>
-                        <comment>Minimal price to show calculator. Ex:120</comment>
-                        <depends>
-                            <field id="show_calculator">1</field>
-                        </depends>
-                    </field>
-                    <field id="js_url" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
-                        <label>Js file URL</label>
-                        <depends>
-                            <field id="show_calculator">1</field>
-                        </depends>
-                    </field>
+                    
                 </group>
-                <group id="cron" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <group id="cron" translate="label" type="text" sortOrder="10" showInDefault="0" showInWebsite="0" showInStore="0">
                     <label>Cronjob Cancel Not Attended Orders</label>
-                    <field id="config" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <field id="config" translate="label" type="text" sortOrder="10" showInDefault="0" showInWebsite="0" showInStore="0">
                         <label>Cronjob</label>
                     </field>
                 </group>
