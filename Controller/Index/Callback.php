@@ -274,6 +274,10 @@ class Callback extends Action implements CsrfAwareActionInterface
     private function validateIpAddress($ipAddress) : bool
     {
         $configIps = $this->helper->getConfig($this->getConfigPath() . self::CALLBACK_IPS_ALLOWED);
+        if (!$configIps) {
+            return true;
+        }
+
         $configIps = preg_replace("/\s/", "", $configIps);
         $ips = explode(",", $configIps);
         return in_array($ipAddress, $ips);
@@ -329,7 +333,7 @@ class Callback extends Action implements CsrfAwareActionInterface
         $this->orderRepository->save($order);
 
         if ($order->getStatus() == 'processing' && $responseCode == self::RESULT_CODE_APPROVED) {
-            $this->autoInvoice($order->getId());
+            $this->autoInvoice($order);
             $order->addCommentToStatusHistory(__($comment), false)
                 ->setIsCustomerNotified(true);
 
