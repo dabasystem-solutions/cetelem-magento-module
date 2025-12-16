@@ -303,6 +303,19 @@ class Callback extends Action implements CsrfAwareActionInterface
      */
     private function processOrder(\Magento\Sales\Model\Order $order, Quote $quote, string $responseCode)
     {
+        if (
+            !$order->isEmpty() &&
+            $responseCode === self::RESULT_CODE_PRE_APPROVED &&
+            $order->getStatus() === $this->helper->getConfig(
+                $this->getConfigPath() . self::CONFIG_APROVED_ORDER
+            )
+        ) {
+            $comment = __('Order already approved. Cannot change to pre-approved.');
+            $this->logger->info($comment);
+
+            return new ErrorResponse($comment);
+        }
+
         if ($responseCode == self::RESULT_CODE_PRE_APPROVED) {
             $status  = $this->helper->getConfig($this->getConfigPath() . self::CONFIG_PREAPROVED_ORDER);
             $comment = __('Pre-approved financing operation');
