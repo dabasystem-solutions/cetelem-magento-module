@@ -51,7 +51,9 @@ class Data extends AbstractHelper implements PaymentInterface
             "serverUrl" => $this->getConfig(
                 PaymentInterface::CETELEM . PaymentInterface::SERVER_URL
             ),
-            "server" => "https://ecommercecalculadora.cetelem.es"
+            "server" => $this->getEnvironmentUrl(
+                PaymentInterface::CETELEM
+            )
         ];
     }
 
@@ -76,7 +78,9 @@ class Data extends AbstractHelper implements PaymentInterface
             "serverUrl" => $this->getConfig(
                 PaymentInterface::ENCUOTAS . PaymentInterface::SERVER_URL
             ),
-            "server" => "https://ecommercecalculadora.cetelem.es"
+            "server" => $this->getEnvironmentUrl(
+                PaymentInterface::ENCUOTAS
+            )
         ];
     }
 }
