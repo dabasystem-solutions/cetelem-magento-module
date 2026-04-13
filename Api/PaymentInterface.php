@@ -6,7 +6,7 @@ interface PaymentInterface
 {
     /** common constants */
     const TEST_URL         = "https://test.cetelem.es";
-    const LIVE_URL         = "https:/ecommerce.cetelem.es";
+    const LIVE_URL         = "https://ecommerce.cetelem.es";
     const IS_ENABLED       = 'active';
     const TEST_MODE        = 'testmode';
     const IPS_ALLOWED      = 'allowed_ips';
